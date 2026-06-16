@@ -1,2 +1,2 @@
 # lingchat-android
-LingChat for Android
+这是能给Android系统编译的一个lingchat版本，代码修改通过ai完成
