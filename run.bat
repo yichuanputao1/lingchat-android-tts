@@ -1,0 +1,1 @@
+python-embed\python.exe server_fastapi.py

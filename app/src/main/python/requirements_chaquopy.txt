@@ -1,0 +1,40 @@
+# ============================================================================
+# Style-Bert-VITS2 TTS - Android APK Dependencies (Chaquopy)
+# ============================================================================
+# Dependencies are copied by Chaquopy into the APK at build time.
+# All listed packages must have Android aarch64 wheels or be pure-Python.
+# ============================================================================
+
+# ---- API Server ----
+fastapi>=0.95.0
+uvicorn[standard]>=0.21.0
+
+# ---- Audio Processing ----
+
+# ---- ONNX Runtime (Android-native inference) ----
+# onnxruntime has official Android aarch64 wheels.
+onnxruntime>=1.15.0
+
+# ---- Config File Parsing ----
+pyyaml>=6.0
+
+# ---- Transformers / HuggingFace (for BERT tokenizers) ----
+transformers>=4.30.0
+
+# ---- Japanese Text Processing (optional, pure-Python subset) ----
+# pyopenjtalk          # C extension, won't compile on Android
+
+# ============================================================================
+# REMOVED PACKAGES (no Android wheel available):
+#   torch        -> Use ONNX models + onnxruntime instead
+#   librosa      -> Not imported anywhere in style_bert_vits2 source
+#   soundfile    -> Not imported anywhere in style_bert_vits2 source
+#   pyworld      -> voice.py guarded with try/except; defaults are safe
+#   onnx         -> Only needed for model export; onnxruntime handles inference
+#   psutil       -> Replaced with /proc/meminfo and /proc/stat in server_main.py
+# ============================================================================
+
+# ---- Bundled source (not pip) ----
+# style_bert_vits2/         (in src/main/python/)
+# config_android.py         (in src/main/python/)
+# config_android.yml        (in src/main/python/)

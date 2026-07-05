@@ -1,0 +1,11 @@
+# Style-Bert-VITS2 Android Configuration
+# Simplified for inference-only deployment on Termux/Android
+model_name: "Murasame v3.7"
+assets_root: "model_assets"
+
+server:
+  port: 5000
+  limit: 50
+  language: "JP"
+  origins:
+    - "*"
