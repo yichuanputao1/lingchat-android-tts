@@ -1,2 +1,2 @@
 # lingchat-android
-这是能给Android系统编译的一个lingchat版本，代码修改通过ai完成
+这是能给Android系统编译的一个lingchat可用的tts（来自于qq群文件）版本，代码修改通过ai完成，防止版权问题所以本仓库并不包含模型
