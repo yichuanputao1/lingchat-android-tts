@@ -1,0 +1,98 @@
+name: Build Android APK with Tauri
+
+on:
+  push:
+    branches: [ main, master ]   # 当推送到 main 或 master 分支时触发
+  workflow_dispatch:              # 允许手动触发（在 GitHub Actions 页面点击按钮）
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 1. 安装 Rust 工具链并添加 Android 目标
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android, armv7-linux-androideabi, i686-linux-android, x86_64-linux-android
+
+      # 2. 缓存 Cargo 依赖（加速构建）
+      - name: Cache Cargo dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      # 3. 安装 Node.js 并设置前端环境（根据你的项目实际使用 npm/pnpm/yarn）
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'   # 如果使用 pnpm，请改为 'pnpm'，并确保下方步骤使用 pnpm
+
+      # 如果你使用 pnpm，取消下面两行的注释，并注释掉 npm 部分
+       - name: Install pnpm
+         run: npm install -g pnpm
+      # - name: Get pnpm store directory
+      #   id: pnpm-cache
+      #   shell: bash
+      #   run: echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+      # - name: Cache pnpm
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+      #     key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+      #     restore-keys: ${{ runner.os }}-pnpm-store-
+
+      # 安装前端依赖（默认 npm，请根据实际调整）
+      - name: Install frontend dependencies
+        run: pnpm install
+      # 如果使用 pnpm，替换为: run: pnpm install
+
+      # 构建前端（默认 npm run build，请根据实际脚本名称调整）
+      - name: Build frontend
+        run: pnpm run build
+      # 如果使用 pnpm，替换为: run: pnpm run build
+
+      # 4. 安装 Tauri CLI（使用 cargo install，确保版本为 2.x）
+      - name: Install Tauri CLI
+        run: cargo install tauri-cli@^2.0.0
+
+      # 5. 设置 Java (Android 构建需要 JDK 17)
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      # 6. 设置 Android SDK 并安装必要的平台和构建工具
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platforms;android-34 build-tools;34.0.0'  # 使用稳定的 API 34，避免 API 36 问题
+
+      # 7. 初始化 Android 项目（如果尚未初始化，这会创建；如果已存在会覆盖）
+      - name: Initialize Android project
+        run: cargo tauri android init --force
+
+      # 8. 构建 Release APK
+      - name: Build Release APK
+        run: cargo tauri android build --release
+
+      # 9. 上传 APK 作为 Artifact，方便下载
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: LingChat-Android-APK
+          path: src-tauri/gen/android/app/build/outputs/apk/universal/release/*.apk
